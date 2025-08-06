@@ -1,22 +1,20 @@
-import { useState } from 'react';
-import TodoForm from './components/Todoform';
+import { useEffect, useState } from 'react';
 import TodoItem from './components/TodoItem';
+import TodoForm from './components/Todoform';
 
 export default function App() {
-  const [todos, setTodos] = useState([]);
-  const [alert, setAlert] = useState('');
-
-  const showAlert = (message) => {
-    setAlert(message);
-    setTimeout(() => setAlert(''), 2500); // Auto close in 2.5s
-  };
+  const [todos, setTodos] = useState(() => {
+    const saved = localStorage.getItem('todos');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [alert, setAlert] = useState("");
 
   const addTodo = (text) => {
     if (!text.trim()) {
-      showAlert("🚫 Todo tidak boleh kosong!");
+      setAlert("⚠️ Tidak boleh kosong!");
+      setTimeout(() => setAlert(""), 2000);
       return;
     }
-
     setTodos([...todos, { id: Date.now(), text, done: false }]);
   };
 
@@ -30,17 +28,18 @@ export default function App() {
     setTodos(todos.filter(todo => todo.id !== id));
   };
 
+  useEffect(() => {
+    localStorage.setItem('todos', JSON.stringify(todos));
+  }, [todos]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 relative">
         {alert && (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-red-100 text-red-700 px-4 py-2 rounded-md shadow-md text-sm font-medium max-w-xs w-full text-center animate-in fade-in duration-300">
-      {alert}
-    </div>
-
-
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-red-100 text-red-700 px-4 py-2 rounded shadow animate-in fade-in duration-300">
+            {alert}
+          </div>
         )}
-
         <h1 className="text-3xl font-bold text-center text-purple-700 mb-6">📝 Todo App</h1>
         <TodoForm onAdd={addTodo} />
         <ul className="mt-4 space-y-2 max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-purple-400 scrollbar-track-purple-100 pr-1">
